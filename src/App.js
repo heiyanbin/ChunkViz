@@ -59,6 +59,9 @@ function App() {
   const [splitter, setSplitter] = useState('characterSplitter');
   const [rawChunks, setRawChunks] = useState([]);
   const [overlapSize, setOverlapSize] = useState([]);
+  const [separators, setSeparators] = useState(["\n\n", "\n", " ", ""]);
+  const [inputSeps, setInputSeps] = useState(JSON.stringify(["\n\n", "\n", " ", ""]));
+  const [separator, setSeparator] = useState("");
 
   const MAX_TEXT_LENGTH = 100000; // Define your maximum text length
 
@@ -66,12 +69,14 @@ function App() {
     'characterSplitter': {
       label: 'Character Splitter 🦜️🔗',
       language: null,
+      separator: separator,
       chunk_overlap_ind: true,
       defaultText: defaultProse
     },
     'recursiveCharacterTextSplitter': {
       label: 'Recursive Character Text Splitter 🦜️🔗',
       language: null,
+      separators: separators,
       chunk_overlap_ind: false,
       defaultText: defaultProse
     },
@@ -126,6 +131,20 @@ function App() {
     }
   };
 
+  const handleInputSepsChange = (event) => {
+      setInputSeps(event.target.value);
+      try {
+        setSeparators(JSON.parse(event.target.value));
+      }
+      catch (e) {
+        console.warn(e)
+      }
+  };
+
+  const handleSeparatorChange = (event) => {
+    setSeparator(event.target.value);
+};
+
   const handleOverlapChange = (event) => {
     let newOverlap = Number(event.target.value);
     if (newOverlap <= chunkSize * 0.5) {
@@ -168,12 +187,12 @@ function App() {
     return chunkData;
   };
 
-  const chunkTextSimple = async (text, chunkSize, overlap) => {
+  const chunkTextSimple = async (text, separator, chunkSize, overlap) => {
     if (!text) {
       return [];
     }
     const splitter = new CharacterTextSplitter_ext({
-      separator: "",
+      separator: separator,
       chunkSize: chunkSize,
       chunkOverlap: overlap,
       keepSeparator: true
@@ -188,19 +207,23 @@ function App() {
     return chunks || []; // Ensure that an array is returned
   };
 
-  const chunkTextRecursive = async (text, chunkSize, overlap, language) => {
+  const chunkTextRecursive = async (text, separators, chunkSize, overlap, language) => {
     if (!text) {
       return [];
     }
     let splitter;
     if (language) {
       splitter = RecursiveCharacterTextSplitter_ext.fromLanguage(language, {
+        separators: separators,
+        is_separator_regex: true,
         chunkSize: chunkSize,
         chunkOverlap: overlap,
         keepSeparator: true
       });
     } else {
       splitter = new RecursiveCharacterTextSplitter_ext({
+        separators: separators,
+        is_separator_regex: true,
         chunkSize: chunkSize,
         chunkOverlap: overlap,
         keepSeparator: true
@@ -220,15 +243,16 @@ function App() {
     let rawChunks;
     const language = splitterOptions[splitter].language;
     if (splitter.startsWith('characterSplitter')) {
-      rawChunks = await chunkTextSimple(text, chunkSize, overlap);
+      rawChunks = await chunkTextSimple(text, separator, chunkSize, overlap);
     } else {
-      rawChunks = await chunkTextRecursive(text, chunkSize, overlap, language);
+      console.log(separators);
+      rawChunks = await chunkTextRecursive(text, separators, chunkSize, overlap, language);
     }
     setRawChunks(rawChunks); // Set the state variable
     const reconstructedChunks = reconstructChunks(rawChunks, overlap);
     const highlightedText = highlightChunks(reconstructedChunks);
     return highlightedText;
-  }, [text, chunkSize, overlap, splitter, splitterOptions]);
+  }, [text, separators, separator, chunkSize, overlap, splitter, splitterOptions]);
 
   useEffect(() => {
     (async () => {
@@ -281,6 +305,29 @@ function App() {
           </label>
         </div>
         <div className="slider-container">
+          <label>
+            <span style={{ display: 'inline-block', paddingRight: '10px' }}>Separators:</span>
+            <input
+              type="text"
+              value={inputSeps}
+              style={{ width: '150px' }}
+              onChange={handleInputSepsChange}
+             // onKeyDown={handleKeyDown}
+            />
+          </label>
+        </div>
+         <div className="slider-container">
+          <label>
+            <span style={{ display: 'inline-block', paddingRight: '10px' }}>Separator:</span>
+            <input
+              type="text"
+              value={separator}
+              style={{ width: '50px' }}
+              onChange={handleSeparatorChange}
+            />
+          </label>
+        </div>
+       <div className="slider-container">
           <label style={{ opacity: splitterOptions[splitter].chunk_overlap_ind ? 1 : 0.5 }}>
             <span style={{ display: 'inline-block', paddingRight: '10px' }}>Chunk Overlap:</span>
             <input
