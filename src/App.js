@@ -261,6 +261,7 @@ function App() {
     })();
   }, [renderTextWithHighlights]);
 
+  const sepOn = splitter.startsWith('characterSplitter');
   return (
     <div className="App">
       <h1>ChunkViz v0.1</h1>
@@ -304,7 +305,7 @@ function App() {
             <input type="range" min="1" max="2000" value={chunkSize} onChange={handleChunkSizeChange} />
           </label>
         </div>
-        <div className="slider-container">
+        <div className="slider-container" style={{ display: !sepOn ? 'block' : 'none' }}>
           <label>
             <span style={{ display: 'inline-block', paddingRight: '10px' }}>Separators:</span>
             <input
@@ -316,7 +317,7 @@ function App() {
             />
           </label>
         </div>
-         <div className="slider-container">
+         <div className="slider-container" style={{ display: sepOn ? 'block' : 'none' }}>
           <label>
             <span style={{ display: 'inline-block', paddingRight: '10px' }}>Separator:</span>
             <input
