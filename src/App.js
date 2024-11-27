@@ -214,12 +214,11 @@ function App() {
     let splitter;
     if (language) {
       splitter = RecursiveCharacterTextSplitter_ext.fromLanguage(language, {
-        separators: separators,
-        is_separator_regex: true,
         chunkSize: chunkSize,
         chunkOverlap: overlap,
         keepSeparator: true
       });
+      setInputSeps(JSON.stringify(splitter.separators));
     } else {
       splitter = new RecursiveCharacterTextSplitter_ext({
         separators: separators,
@@ -308,10 +307,10 @@ function App() {
         <div className="slider-container" style={{ display: !sepOn ? 'block' : 'none' }}>
           <label>
             <span style={{ display: 'inline-block', paddingRight: '10px' }}>Separators:</span>
-            <input
+            <textarea
               type="text"
               value={inputSeps}
-              style={{ width: '150px' }}
+              style={{ width: '500px', height:'auto' }}
               onChange={handleInputSepsChange}
              // onKeyDown={handleKeyDown}
             />
